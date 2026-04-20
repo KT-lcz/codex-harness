@@ -1,0 +1,7 @@
+[mcp_servers.exa]
+type = "stdio"
+command = "npx"
+args = ["-y", "exa-mcp-server"]
+
+[mcp_servers.exa.env]
+EXA_API_KEY = "__EXA_API_KEY__"

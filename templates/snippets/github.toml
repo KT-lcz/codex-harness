@@ -1,0 +1,7 @@
+[mcp_servers.github]
+type = "stdio"
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-github"]
+
+[mcp_servers.github.env]
+GITHUB_PERSONAL_ACCESS_TOKEN = "__GITHUB_PERSONAL_ACCESS_TOKEN__"

@@ -1,0 +1,63 @@
+
+model = "gpt-5.4"
+model_provider = "cpa-responses"
+disable_response_storage = true
+plan_mode_reasoning_effort = "high"
+model_reasoning_effort = "high"
+tool_output_token_limit = 128000
+model_context_window = 400000
+model_auto_compact_token_limit = 300000
+sandbox_mode = "danger-full-access"
+approval_policy = "never"
+personality = "pragmatic"
+web_search = "live"
+
+[profiles.multi]
+model = "gpt-5.4"
+model_provider = "cpa-responses"
+model_reasoning_effort = "high" 
+sandbox_mode = "danger-full-access"
+approval_policy = "never"
+personality = "pragmatic"
+web_search = "live"
+model_instructions_file = "agents-prompts/ORCHESTRATOR.md"
+
+[model_providers.cpa-responses]
+name = "cpa using responses"
+base_url = "http://10.20.33.155:8317/v1"
+wire_api = "responses"
+query_params = {}
+
+[mcp_servers.context7]
+type = "stdio"
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]
+
+[mcp_servers.fetch]
+type = "stdio"
+command = "uvx"
+args = ["mcp-server-fetch"]
+
+[mcp_servers.fetch.tools.fetch]
+approval_mode = "approve"
+
+[tui]
+status_line = ["model-with-reasoning", "context-usage", "current-dir", "context-window-size", "used-tokens", "thread-title"]
+theme = "dracula"
+terminal_title = ["spinner", "project", "status", "git-branch", "task-progress"]
+
+[notice.model_migrations]
+gpt-5 = "gpt-5.3-codex"
+
+[shell_environment_policy]
+set = { PATH = "__SHELL_PATH__"}
+inherit = "all"
+
+[agents]
+max_threads = 5
+max_depth = 1
+
+[features]
+image_detail_original = true
+multi_agent = true
+shell_tool = true

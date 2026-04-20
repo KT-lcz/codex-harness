@@ -1,0 +1,8 @@
+name = "quick"
+description = "负责快速执行简单任务"
+model = "gpt-5.4-mini"
+model_reasoning_effort = "medium"
+sandbox_mode = "workspace-write"
+developer_instructions = """
+简单任务/快速修复
+"""
