@@ -64,8 +64,7 @@
 #### 🟢 `openspec-ff-change`
 * **流转步骤**：
     1.  拉起 `architect`，要求其一次性输出 `proposal.md`、增量规范 (`specs/**/*.md`) 和技术设计 (`design.md`)。等待完成。
-    2.  拉起 `evaluator`，对 Architect 的输出进行红蓝对抗式审查。**若发现致命缺陷，需携带审查意见再次拉起 `architect` 修复，直至通过**；如果通过，关闭 Evaluator。
-    3.  拉起 `scrum_master`，指示其将通过的 `design.md` 降维拆解为原子化的 `tasks.md` 和带有隔离上下文的 Story 文件。
+    2.  拉起 `scrum_master`，指示其将通过的 `design.md` 降维拆解为原子化的 `tasks.md` 和带有隔离上下文的 Story 文件。
 #### 🟢 `openspec-continue-change` (逐步渐进式规划)
 *   **拦截与拉起**：你需要先读取当前变更目录的状态，然后**按需拉起**下一个阶段的代理。
 *   **流转步骤**：
