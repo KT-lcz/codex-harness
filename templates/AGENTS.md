@@ -47,6 +47,6 @@
 - **Always respond in Chinese-simplified**
 - See `~/.codex/rules/obsidian-docs.md` for detailed rules on generating and writing Obsidian documentation.
 - See `~/.codex/rules/compaction.md` for detailed rules on compact context.
-- **Obsidian default repo /home/lcz/Documents/Obsidian Vault**
-- 当需要执行Bash时，See `/home/lcz/.codex/RTK.md`
+- **Obsidian default repo ~/Documents/Obsidian Vault**
+- 当需要执行Bash时，See `~/.codex/RTK.md`
 - subagent 在返回结果时，如果内容较长，需要使用文件作为内容传递方式，文件路径为`.ecx/${agentname}-${date}/${title}`
