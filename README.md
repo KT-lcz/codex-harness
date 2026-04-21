@@ -185,6 +185,8 @@ codex
 当前多 agent 编排的标准使用方式是：
 
 ```bash
+cd ${project path}
+openspec init --tools codex // 只需执行一次
 codex -p multi
 ```
 
