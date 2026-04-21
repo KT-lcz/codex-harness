@@ -1,11 +1,18 @@
 ---
 name: multi-model-research
-description: 使用 Gemini 或 Claude 作为第二研究视角完成技术调研、方案评审和假设挑战。支持单模型模式（gemini/claude）或双模型对比模式（both）。适用于已完成第一轮本地探索，需要补充替代方案、识别遗漏风险、挑战现有判断时。通过 `codeagent-wrapper` 配合本 skill 下的 prompts 运行。
+description: 使用 Gemini 或 Claude 作为研究视角完成技术调研、方案评审和假设挑战。支持独立调研（直接发起）和第二视角审核（对已有调研做补充/挑战）两种模式。也支持单模型（gemini/claude）或双模型对比（both）运行。通过 `codeagent-wrapper` 配合本 skill 下的 prompts 运行。
 ---
 
 # Multi-Model Research
 
-先完成本地侧的最小必要探索，再调用外部模型做补充分析。不要把外部模型当作权威裁决器；把它当作第二视角和反例生成器。
+本 skill 提供两种使用模式，根据当前阶段选择：
+
+| 模式 | 场景 | 输入重点 |
+|---|---|---|
+| **独立调研** | 尚未做前期探索，直接委托外部模型完成调研 | 清晰的问题定义、约束条件、期望输出 |
+| **第二视角审核** | 本地已有初步结论，需要交叉验证和挑战 | 本地已确认事实、当前判断、希望被挑战的假设 |
+
+不要把外部模型当作权威裁决器；把它当作研究助手和反例生成器。
 
 ## 选择后端模式
 
@@ -21,28 +28,43 @@ description: 使用 Gemini 或 Claude 作为第二研究视角完成技术调研
 
 ## 先整理输入
 
-在调用外部模型之前，先把上下文压缩成一份短任务，至少包含：
+### 模式 A：独立调研
 
-- 调研目标或待决策问题
-- 已确认事实
-- 当前方案或初步判断
-- 关键文件路径或官方文档链接
-- 还未解决的问题
-- 希望外部模型特别挑战的假设
+如果你尚未做本地探索，直接发起调研，输入至少包含：
 
-只传必要摘要，不要粘贴大段源码；优先给文件路径、接口名、模块边界、错误现象和你的中间结论。
+- **调研目标** — 要解决的核心问题或待决策事项
+- **已知约束** — 技术栈、性能要求、团队能力、时间限制等
+- **关键上下文** — 相关文件路径、文档链接、已有代码位置
+- **期望输出** — 需要方案对比、风险评估、还是技术选型建议
+- **已知信息**（如有）— 你已经了解的任何相关事实
+
+### 模式 B：第二视角审核
+
+如果你已有本地初步结论，需要补充和挑战，输入至少包含：
+
+- **调研目标** — 核心问题
+- **本地已确认事实** — 经你验证的确定性信息
+- **当前判断** — 你的初步结论或倾向方案
+- **关键上下文** — 文件路径、文档链接
+- **希望被挑战的假设** — 你怀疑可能出错的地方
+- **还未解决的问题** — 当前调研中的盲区
+
+无论哪种模式，只传必要摘要，不要粘贴大段源码；优先给文件路径、接口名、模块边界、错误现象和你的中间结论。
 
 ## 解析运行前提
 
-执行前按下面顺序确定可用命令和 prompt 路径：
+执行前按下面顺序确定可用命令、prompt 路径和模型配置：
 
 1. 优先使用 `~/.codex/ccg/codeagent-wrapper`
 2. 若不存在，再使用 `PATH` 中的 `codeagent-wrapper`
 3. prompt 文件根据后端选择：
    - `gemini` → `prompts/gemini-explorer.md`
    - `claude` → `prompts/claude-explorer.md`
+4. 模型配置读取当前 skill 目录下的 `config.json`：
+   - 若 `"gemini".model` 或 `"claude".model` 非空，调用时追加 `--model <model>`
+   - 若为空或未配置，不追加 `--model` 参数，由后端使用默认模型
 
-安装到 `~/.codex/skills` 后，prompt 路径通常变为 `~/.codex/skills/multi-model-research/prompts/` 下。
+安装到 `~/.codex/skills` 后，prompt 路径和 `config.json` 通常在 `~/.codex/skills/multi-model-research/` 下。
 
 如果 `codeagent-wrapper` 或对应后端所需环境变量不可用，明确说明阻塞点，不要伪造结果。
 
@@ -62,6 +84,16 @@ SESSION_ID: <uuid>
 BACKEND="claude"  # 或 gemini
 PROMPT="/absolute/path/to/prompts/${BACKEND}-explorer.md"
 OUTPUT_FILE="$(mktemp)"
+CONFIG="/absolute/path/to/config.json"
+
+# 从 config.json 读取模型配置（需要 python3；无 python3 时跳过）
+MODEL_ARG=""
+if [ -r "$CONFIG" ] && command -v python3 >/dev/null 2>&1; then
+  MODEL="$(python3 -c "import json,sys; d=json.load(open('$CONFIG')); print(d.get('$BACKEND',{}).get('model',''))" 2>/dev/null)"
+  if [ -n "$MODEL" ]; then
+    MODEL_ARG="--model $MODEL"
+  fi
+fi
 
 if [ -x "$HOME/.codex/ccg/codeagent-wrapper" ]; then
   WRAPPER="$HOME/.codex/ccg/codeagent-wrapper"
@@ -69,27 +101,30 @@ else
   WRAPPER=codeagent-wrapper
 fi
 
-"$WRAPPER" --backend "$BACKEND" --prompt-file "$PROMPT" - <<'EOF' | tee "$OUTPUT_FILE"
+# 注意：MODEL_ARG 展开时无引号，因为 --model 和模型名是两个独立参数
+"$WRAPPER" --backend "$BACKEND" $MODEL_ARG --prompt-file "$PROMPT" - <<'EOF' | tee "$OUTPUT_FILE"
 调研主题：
 <一句话说明要解决的核心问题>
 
-本地已确认事实：
-- <事实 1>
-- <事实 2>
-
-当前判断：
-- <当前结论或候选方案>
+已知约束：
+- <技术栈/性能/时间/团队等约束 1>
+- <约束 2>
 
 关键上下文：
 - 文件：<path>
 - 文件：<path>
 - 文档：<url>
 
-希望补充分析：
-1. 挑战当前判断，指出可能错判的地方
-2. 提出 2-3 个替代方案或不同分析角度
-3. 识别遗漏风险、边界条件和验证盲点
-4. 明确哪些结论属于事实，哪些只是推断
+本地已确认事实（如有）：
+- <事实 1>
+- <事实 2>
+
+当前判断（如有）：
+- <你的初步结论或倾向方案>
+
+希望模型重点分析：
+1. <分析方向 1>
+2. <分析方向 2>
 
 输出要求：
 - 使用结构化 Markdown
@@ -140,13 +175,26 @@ fi
 当需要同时利用两个模型的视角时，分别发起两个独立会话，然后本地整合：
 
 ```bash
-# 并行或串行调用均可
-"$WRAPPER" --backend gemini --prompt-file "$PROMPT_GEMINI" - <<'EOF' | tee gemini_output.md
+# 封装读取模型配置的 helper
+_model_arg() {
+  local backend="$1"
+  if [ -r "$CONFIG" ] && command -v python3 > /dev/null 2>&1; then
+    local model
+    model="$(python3 -c "import json,sys; d=json.load(open('$CONFIG')); print(d.get('$backend',{}).get('model',''))" 2>/dev/null)"
+    [ -n "$model" ] && echo "--model $model"
+  fi
+}
+
+# Gemini 会话
+GEMINI_MODEL_ARG="$(_model_arg gemini)"
+"$WRAPPER" --backend gemini $GEMINI_MODEL_ARG --prompt-file "$PROMPT_GEMINI" - <<'EOF' | tee gemini_output.md
 ... 同一调研主题 ...
 EOF
 SESSION_ID_GEMINI="$(sed -n 's/^SESSION_ID: //p' gemini_output.md | tail -n 1)"
 
-"$WRAPPER" --backend claude --prompt-file "$PROMPT_CLAUDE" - <<'EOF' | tee claude_output.md
+# Claude 会话
+CLAUDE_MODEL_ARG="$(_model_arg claude)"
+"$WRAPPER" --backend claude $CLAUDE_MODEL_ARG --prompt-file "$PROMPT_CLAUDE" - <<'EOF' | tee claude_output.md
 ... 同一调研主题 ...
 EOF
 SESSION_ID_CLAUDE="$(sed -n 's/^SESSION_ID: //p' claude_output.md | tail -n 1)"
@@ -169,11 +217,19 @@ SESSION_ID_CLAUDE="$(sed -n 's/^SESSION_ID: //p' claude_output.md | tail -n 1)"
 - 只吸收那些能改变结论、暴露风险或补齐证据链的内容
 - 如果模型与本地证据冲突，以可验证证据为准，并明确写出冲突点
 
-最终调研结果至少应包含：
+### 独立调研模式的结果整合
+
+- 模型给出的方案和建议
+- 需要本地验证的假设和事实
+- 明确的待决策点和需要补充的信息
+- 下一步行动建议
+
+### 第二视角审核模式的结果整合
 
 - 本地初步结论
 - 外部模型补充的不同视角
 - 合并后的推荐方案
+- 被挑战后仍需确认的假设
 - 仍未解决的高影响问题
 
 如果是双模型模式，额外包含：
