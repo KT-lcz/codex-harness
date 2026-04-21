@@ -57,14 +57,14 @@
 *   **验收交付物**：空的工作区结构。
 #### 🟢 `openspec-propose`
 * **流转步骤**：
-    1.  拉起 `quick`,指示其在 `openspec/changes/<change-name>/` 下创建新的标准变更目录结构。
+    1.  如果缺少`openspec/changes/<change-name>/`,拉起 `quick`,指示其在 `openspec/changes/<change-name>/` 下创建新的标准变更目录结构，完成后即可关闭 quick。
     2.  拉起 `architect`，要求其一次性输出 `proposal.md`、增量规范 (`specs/**/*.md`) 和技术设计 (`design.md`)。等待完成。
-    3.  拉起 `evaluator`，对 Architect 的输出进行红蓝对抗式审查。**若发现致命缺陷，需携带审查意见再次拉起 `architect` 修复，直至通过**；如果通过，关闭 Evaluator。
+    3.  拉起 `evaluator`，对 Architect 的输出进行红蓝对抗式审查。**若发现致命缺陷，需携带审查意见再次拉起 `architect` 修复，直至通过**；如果通过，关闭 Evaluator 和 architect。
     4.  拉起 `scrum_master`，指示其将通过的 `design.md` 降维拆解为原子化的 `tasks.md` 和带有隔离上下文的 Story 文件。
 #### 🟢 `openspec-ff-change`
 * **流转步骤**：
-    1.  拉起 `architect`，要求其一次性输出 `proposal.md`、增量规范 (`specs/**/*.md`) 和技术设计 (`design.md`)。等待完成。
-    2.  拉起 `scrum_master`，指示其将通过的 `design.md` 降维拆解为原子化的 `tasks.md` 和带有隔离上下文的 Story 文件。
+    1.  拉起 `architect`，要求其一次性输出 `proposal.md`、增量规范 (`specs/**/*.md`) 和技术设计 (`design.md`)。等待完成，完成后关闭 architect。
+    2.  拉起 `scrum_master`，指示其将 `design.md` 降维拆解为原子化的 `tasks.md` 和带有隔离上下文的 Story 文件。
 #### 🟢 `openspec-continue-change` (逐步渐进式规划)
 *   **拦截与拉起**：你需要先读取当前变更目录的状态，然后**按需拉起**下一个阶段的代理。
 *   **流转步骤**：
