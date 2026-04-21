@@ -1,4 +1,5 @@
 # codex-harness
+<img width="2752" height="1536" alt="unnamed" src="https://github.com/user-attachments/assets/d2fcd440-12ab-4251-a45a-9358ebd116bd" />
 
 一个面向 Codex CLI 的轻量级多 agent harness，用来补齐 Codex 生态里偏少的编排能力。
 
