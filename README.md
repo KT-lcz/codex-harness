@@ -87,10 +87,10 @@ codex -p multi
 
 ### 4. 预置技能模板
 
-仓库在 `templates/skills` 中提供了两个技能模板：
+仓库在 `templates/skills` 中提供了技能模板：
 
-- `gemini-research`
-- `tech-research`
+- `multi-model-research`：支持 Gemini / Claude 双后端的技术调研与方案评审，可单模型或双模型对比模式运行
+- `tech-research`：标准化技术调研工作流
 
 它们解决的是"需要第二视角调研"以及"需要标准化技术调研工作流"的场景。
 
@@ -199,14 +199,21 @@ $openspec-explore 需要给当前项目添加gitlab oauth认证
 
 在使用openspec skill时自动触发。
 
-### 4. 使用 Gemini 调研包装器
+### 4. 使用多模型调研包装器
 
-当前仓库自带的 `gemini-research` 模板依赖 `codeagent-wrapper`。例如：
+当前仓库自带的 `multi-model-research` 模板依赖 `codeagent-wrapper`，支持 Gemini / Claude 单后端或双后端对比模式。例如：
 
 ```bash
+# 单模型模式（claude）
+./ccg/codeagent-wrapper \
+  --backend claude \
+  --prompt-file ./templates/skills/multi-model-research/prompts/claude-explorer.md \
+  "评估当前方案是否适合做多 agent 编排"
+
+# 单模型模式（gemini）
 ./ccg/codeagent-wrapper \
   --backend gemini \
-  --prompt-file ./templates/skills/gemini-research/prompts/explorer.md \
+  --prompt-file ./templates/skills/multi-model-research/prompts/gemini-explorer.md \
   "评估当前方案是否适合做多 agent 编排"
 ```
 
@@ -325,7 +332,7 @@ RTK（Rust Token Killer）是一个 Token 优化的 CLI 代理，用于减少 sh
     ├── config.base.toml    # 基础配置模板
     ├── rules/              # 行为规则
     ├── skills/             # 技能模板
-    │   ├── gemini-research/
+    │   ├── multi-model-research/
     │   └── tech-research/
     └── snippets/           # 代码片段
 ```
@@ -364,3 +371,4 @@ RTK（Rust Token Killer）是一个 Token 优化的 CLI 代理，用于减少 sh
 - 增加技术方案审核的skill
 - 增加review代码提交的skill
 - 增加记忆和召回的prompt
+- 增加deep-interview的skill

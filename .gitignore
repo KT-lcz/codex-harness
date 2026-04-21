@@ -1,5 +1,6 @@
-.codex
+.codex/
 .omx/
+.omc/
 .personality_migration
 .tmp/
 history.jsonl
