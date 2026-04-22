@@ -39,7 +39,7 @@
 | `code-mapper` | 本地代码分析者 | 扫描现有代码、梳理结构、定位集成点 | 代码映射、路径分析 |
 | `architect` | 架构与规范作者 | `proposal.md`、`design.md`、delta specs 等工件编写 | 方案与规范工件 |
 | `evaluator` | 方案评估者 | 对设计与规范进行批判式审查 | 审查报告、通过/驳回意见 |
-| `scrum_master` | 任务拆解者 | 产出 `tasks.md`、`coder_slices.md`、Story 文件 | 可执行任务切片 |
+| `scrum_master` | 任务拆解者 | 产出 `tasks.md`、`coder_slices.md` | 可执行任务切片 |
 | `coder` | 实施者 | 代码实现、缺陷修复、按任务勾选进度 | 代码改动、任务完成 |
 | `verifier` | 验证者 | 执行测试、收集日志、验证真实行为 | 测试日志、验证结果 |
 | `reviewer` | 代码审查者 | 对实现与规范、设计、任务一致性做审查 | Review 报告 |
@@ -67,25 +67,29 @@
    - 若需要先创建 change，可先短暂使用 `quick`，随后立即切回 `architect`。
    - 任务拆解相关工件交给 `scrum_master`。
    - 设计类工件完成后，必须追加 `evaluator` 审查；若驳回，退回 `architect` 修订。
-   - 当流程进入任务拆解阶段时，必须由 `scrum_master` 产出 `tasks.md`、`coder_slices.md` 和对应 Story 文件。
+   - 当流程进入任务拆解阶段时，必须由 `scrum_master` 产出 `tasks.md` 和 `coder_slices.md`。
+   - 若 `coder_slices.md` 无明确理由地退化为“一任务一 Slice”，视为切片质量不合格，先退回 `scrum_master` 重新合并切片，再继续推进。
 4. `openspec-ff-change`
    - 主代理：`architect`。
    - 任务拆解阶段使用 `scrum_master`。
-   - 进入任务拆解阶段后，必须由 `scrum_master` 产出 `tasks.md`、`coder_slices.md` 和对应 Story 文件。
+   - 进入任务拆解阶段后，必须由 `scrum_master` 产出 `tasks.md` 和 `coder_slices.md`。
+   - 若 `coder_slices.md` 无明确理由地退化为“一任务一 Slice”，视为切片质量不合格，先退回 `scrum_master` 重新合并切片，再继续推进。
 5. `openspec-continue-change`
    - 主代理按当前 artifact 类型决定：
      - 方案/规范类：`architect`
      - 任务拆解类：`scrum_master`
      - 轻量整理类：`quick` 或 `doc_editor`
    - 如果当前阶段产出 `design.md`，完成后必须追加一次 `evaluator` 审查。
-   - 如果当前阶段进入任务拆解，必须由 `scrum_master` 同时产出 `coder_slices.md` 和对应 Story 文件。
+   - 如果当前阶段进入任务拆解，必须由 `scrum_master` 同时产出 `tasks.md` 和 `coder_slices.md`。
    - 不得因为本地强化而跨越 skill 规定的单步推进边界。
 6. `openspec-apply-change`
    - 主代理：`coder`。
    - 若实现前发现任务切片缺失、边界不清或重叠，先退回 `scrum_master` 修复切片，再继续实施。
    - 当存在 `coder_slices.md` 时，按 Slice 顺序串行拉起 `coder`。
+   - 只把当前 Slice 中列出的任务交给当前 `coder`，不得跨 Slice 提前实现后续任务。
    - 同一时刻只允许一个 `coder` 写代码。
-   - 当前 Slice 完成并完成交接后，关闭当前 `coder`，再拉起下一个。
+   - 当前 Slice 完成后，先确认对应任务在 `tasks.md` 中已更新状态，再关闭当前 `coder` 并拉起下一个。
+   - 如果 `coder_slices.md` 中的任务编号不存在于 `tasks.md`、编号重叠、顺序冲突或边界不清，先退回 `scrum_master` 修复，禁止继续实施。
    - 如实施暴露设计问题，可回退到 `architect`；如暴露任务拆解问题，可回退到 `scrum_master`。
 7. `openspec-verify-change`
    - 固定顺序：`security-auditor -> verifier -> reviewer`。

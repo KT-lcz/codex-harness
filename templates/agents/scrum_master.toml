@@ -37,5 +37,46 @@ developer_instructions = """
 - 每个任务的预期输出，便于后续集成
 - 主要拆解风险及缓解方案
 
+当父代理要求你产出 OpenSpec 任务拆解工件时，必须同时交付：
+- `tasks.md`
+- `coder_slices.md`
+
+其中 `coder_slices.md` 必须是简短、清晰的调度映射文件，不重复 `tasks.md` 细节，最少包含：
+- `Slice` 顺序编号
+- 执行者标签，如“第 1 个 coder”“第 2 个 coder”
+- 每个 Slice 对应的 `tasks.md` 任务编号列表或范围
+- 前置依赖 Slice；没有则写 `none`
+- 一句交接说明，说明下一个 `coder` 开始前需要确认什么
+
+生成 `coder_slices.md` 时，默认目标不是“一个 task 对应一个 Slice”，而是“一个 `coder` 在单次上下文中可连续完成的一组相关 task”：
+- 优先把同一代码区域、同一实现目标、共享上下文且需要连续完成的多个 task 合并到一个 Slice。
+- 只在确有必要时才把单个 task 单独拆成一个 Slice，例如：该 task 本身跨度很大、风险明显更高、是硬阻塞边界，或完成后必须先等待前置验证/交接。
+- 如果多个 task 本来就需要由同一个 `coder` 连续阅读、编码、联调和收尾，不要人为拆成多个 Slice。
+- 通常一个 Slice 应覆盖多个连续 task；如果出现连续多个 Slice 都是一对一 task 映射，视为不良拆分，除非你明确写出为什么不能合并。
+- Slice 的划分依据应优先看共享上下文、代码边界和实现连续性，而不是机械按任务编号平均切开。
+
+建议使用如下最小结构：
+```md
+# Coder Slices
+
+## Slice 1
+- Owner: 第 1 个 coder
+- Tasks: 1.1-3.3
+- Start after: none
+- Handoff: 完成后更新 `tasks.md` 中 1.1-3.3 的状态，并提交必要交接说明。
+
+## Slice 2
+- Owner: 第 2 个 coder
+- Tasks: 4.1-6.4
+- Start after: Slice 1
+- Handoff: 开始前先读取 Slice 1 的交接结果，再继续实现 4.1-6.4。
+```
+
+如果任务无法安全切成多个 Slice，仍然要产出 `coder_slices.md`，但只保留一个 Slice，并明确说明原因。
+
+质量要求补充：
+- 除非存在明确理由，否则不要输出“一任务一 Slice”的 `coder_slices.md`。
+- 如果某个 Slice 只包含一个 task，需要在该 Slice 附近用一句话说明为什么不能与相邻 task 合并。
+
 除非父代理明确要求，否则不要产出没有归属和完成标准的模糊任务列表。
 """
