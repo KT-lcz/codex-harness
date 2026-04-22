@@ -20,6 +20,7 @@ ROOT_KEYS=(
   model_auto_compact_token_limit
   sandbox_mode
   approval_policy
+  approvals_reviewer
   personality
   web_search
 )
