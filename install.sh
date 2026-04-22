@@ -36,6 +36,7 @@ BASE_TABLES=(
   features
 )
 CURRENT_SHELL_PATH="${PATH}"
+TTY_FD=""
 
 log() {
   printf '[install] %s\n' "$1"
@@ -73,6 +74,40 @@ escape_sed_replacement() {
 
 escape_toml_basic_string() {
   printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
+init_prompt_input() {
+  if [[ -t 0 ]]; then
+    return
+  fi
+
+  if { exec {TTY_FD}</dev/tty; } 2>/dev/null; then
+    return
+  fi
+
+  TTY_FD=""
+}
+
+close_prompt_input() {
+  if [[ -n "$TTY_FD" ]]; then
+    exec {TTY_FD}<&-
+  fi
+}
+
+read_secret() {
+  local prompt="$1"
+  local value=""
+
+  printf '%s' "$prompt" >&2
+
+  if [[ -n "${TTY_FD}" ]]; then
+    IFS= read -r -s value <&"$TTY_FD" || true
+  else
+    IFS= read -r -s value || true
+  fi
+
+  printf '\n' >&2
+  printf '%s' "$value"
 }
 
 join_by_comma() {
@@ -160,8 +195,12 @@ strip_managed_config() {
           trimmed_line = $0
           sub(/^[[:space:]]+/, "", trimmed_line)
 
-          if (match(trimmed_line, /^([A-Za-z0-9_.-]+)[[:space:]]*=/, matches)) {
-            if (matches[1] in managed_root_keys) {
+          if (trimmed_line ~ /^[A-Za-z0-9_.-]+[[:space:]]*=/) {
+            split(trimmed_line, key_parts, "=")
+            root_key = key_parts[1]
+            sub(/[[:space:]]+$/, "", root_key)
+
+            if (root_key in managed_root_keys) {
               next
             }
           }
@@ -267,16 +306,26 @@ require_file "$EXA_SNIPPET_TEMPLATE"
 require_file "$GITHUB_SNIPPET_TEMPLATE"
 require_file "$CCG_SOURCE_DIR/codeagent-wrapper"
 
+trap close_prompt_input EXIT
+init_prompt_input
+
 log 'Installing @fission-ai/openspec'
 npm install -g @fission-ai/openspec@latest
 
-printf 'EXA_API_KEY (press Enter to skip): '
-read -r -s exa_api_key
-printf '\n'
+exa_api_key="${EXA_API_KEY:-}"
+github_personal_access_token="${GITHUB_PERSONAL_ACCESS_TOKEN:-}"
 
-printf 'GITHUB_PERSONAL_ACCESS_TOKEN (press Enter to skip): '
-read -r -s github_personal_access_token
-printf '\n'
+if [[ -z "$exa_api_key" ]]; then
+  exa_api_key="$(read_secret 'EXA_API_KEY (press Enter to skip): ')"
+else
+  log 'Using EXA_API_KEY from environment'
+fi
+
+if [[ -z "$github_personal_access_token" ]]; then
+  github_personal_access_token="$(read_secret 'GITHUB_PERSONAL_ACCESS_TOKEN (press Enter to skip): ')"
+else
+  log 'Using GITHUB_PERSONAL_ACCESS_TOKEN from environment'
+fi
 
 mkdir -p "$TARGET_DIR"
 

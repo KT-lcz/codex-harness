@@ -159,7 +159,22 @@ codex -p multi
 执行：
 
 ```bash
-git clone <your-repo-url>
+curl -fsSL https://raw.githubusercontent.com/KT-lcz/codex-harness/master/install-remote.sh | bash
+```
+
+`curl | bash` 安装时，脚本会直接从当前终端读取 `EXA_API_KEY` 和 `GITHUB_PERSONAL_ACCESS_TOKEN`，不受管道 stdin 影响。
+如果你不想交互输入，也可以直接用环境变量：
+
+```bash
+EXA_API_KEY=your_exa_key \
+GITHUB_PERSONAL_ACCESS_TOKEN=your_github_pat \
+curl -fsSL https://raw.githubusercontent.com/KT-lcz/codex-harness/master/install-remote.sh | bash
+```
+
+如果你是在本地开发或想修改模板后再安装，也可以继续使用仓库内脚本：
+
+```bash
+git clone https://github.com/KT-lcz/codex-harness.git
 cd codex-harness
 bash install.sh
 ```
@@ -230,6 +245,7 @@ $openspec-explore 需要给当前项目添加gitlab oauth认证
 
 ```bash
 bash -n install.sh
+bash -n install-remote.sh
 ./ccg/codeagent-wrapper --help
 ```
 
@@ -321,6 +337,7 @@ RTK（Rust Token Killer）是一个 Token 优化的 CLI 代理，用于减少 sh
 
 ```text
 .
+├── install-remote.sh   # 远程 bootstrap，支持 curl 安装
 ├── install.sh          # 安装脚本
 ├── ccg/
 │   └── codeagent-wrapper   # 多后端 AI CLI 包装器
@@ -344,6 +361,8 @@ RTK（Rust Token Killer）是一个 Token 优化的 CLI 代理，用于减少 sh
 - `codeagent-wrapper` 目前以二进制形式提交，代码在<https://github.com/stellarlinkco/myclaude/tree/master/codeagent-wrapper>中，可自行编译
 - 默认 provider `base_url` 是一个默认地址，使用时需要手动修改并添加`OPENAI_API_KEY`，
 - `install.sh` 是交互式安装，不适合直接作为无参 CI 安装脚本
+- `install-remote.sh` 只是下载仓库归档后调用 `install.sh`，因此同样会保留交互式输入行为
+- `install.sh` 现在支持从 `/dev/tty` 读取密钥输入，也支持通过环境变量 `EXA_API_KEY` / `GITHUB_PERSONAL_ACCESS_TOKEN` 跳过交互
 - 多 agent 编排能力当前主要通过 `codex -p multi` 这个 profile 入口暴露
 - 所有 shell 命令请使用 `rtk` 前缀以优化 token 消耗
 - OpenSpec 变更记录存储在项目根目录的 `openspec/` 目录下

@@ -56,6 +56,7 @@
    - 同时需要本地现状和外部方案时，可并行拉起 `code-mapper` 与 `explorer`。
    - 只有在需要把探索结果沉淀成正式文档时，才追加 `architect` 做汇总。
    - 不得把该 skill 改写成固定流水线；不强制要求研究文档落盘。
+   - 该阶段可以根据探索情况向用户提问。
 2. `openspec-new-change`
    - 主代理：`quick`。
    - 该 skill 只使用 `quick` 完成 change 初始化所需的轻量操作。

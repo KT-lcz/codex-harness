@@ -11,6 +11,7 @@ sandbox_mode = "danger-full-access"
 approval_policy = "never"
 personality = "pragmatic"
 web_search = "live"
+approvals_reviewer = "user"
 
 [profiles.multi]
 model = "gpt-5.4"

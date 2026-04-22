@@ -17,3 +17,5 @@ state_5.sqlite
 tmp/
 version.json
 state_5*
+.dmux/
+.dmux-hooks/
