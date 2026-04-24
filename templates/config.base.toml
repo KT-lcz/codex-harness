@@ -12,6 +12,12 @@ approval_policy = "never"
 personality = "pragmatic"
 web_search = "live"
 approvals_reviewer = "user"
+compact_prompt = """
+- When summarizing during compaction, preserve in the summary:
+  - The current in-progress task and its goal
+  - Unresolved issues, errors, and open questions
+  - Key decisions and their rationale
+"""
 
 [profiles.multi]
 model = "gpt-5.4"

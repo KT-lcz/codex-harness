@@ -42,12 +42,10 @@
 - 进度反馈保持简短、具体、有用
 - 默认以质量优先、深化意图理解的方式回应；避免空泛，也避免不必要的冗长
 - 最终汇报应包含：变更文件、做了哪些简化、如何验证、以及剩余风险
-- **most important:当你需要做最终汇报时，拉起`doc_editor`对报告内容进行优化，让其更符合中文习惯**
 
 ## Custom
 - **Always respond in Chinese-simplified**
 - See `~/.codex/rules/obsidian-docs.md` for detailed rules on generating and writing Obsidian documentation.
-- See `~/.codex/rules/compaction.md` for detailed rules on compact context.
 - **Obsidian default repo ~/Documents/Obsidian Vault**
 - 当需要执行Bash时，See `~/.codex/RTK.md`
 - subagent 在返回结果时，如果内容较长，需要使用文件作为内容传递方式，文件路径为`.ecx/${agentname}-${date}/${title}`

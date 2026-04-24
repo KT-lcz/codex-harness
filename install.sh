@@ -14,7 +14,6 @@ AGENT_PROMPTS_TEMPLATE_DIR="${TEMPLATE_DIR}/agents-prompts"
 RULES_TEMPLATE_DIR="${TEMPLATE_DIR}/rules"
 SKILLS_TEMPLATE_DIR="${TEMPLATE_DIR}/skills"
 ORCHESTRATOR_TEMPLATE="${AGENT_PROMPTS_TEMPLATE_DIR}/ORCHESTRATOR.md"
-COMPACTION_RULE_TEMPLATE="${RULES_TEMPLATE_DIR}/compaction.md"
 OPENSPEC_SKILL_DELEGATION_RULE_TEMPLATE="${RULES_TEMPLATE_DIR}/openspec-skill-delegation.md"
 ROOT_KEYS=(
   model
@@ -30,6 +29,7 @@ ROOT_KEYS=(
   approvals_reviewer
   personality
   web_search
+  compact_prompt
 )
 BASE_TABLES=(
   profiles.multi
@@ -182,9 +182,17 @@ strip_managed_config() {
 
         current_table = ""
         skip_block = 0
+        skip_multiline_root_value = 0
       }
 
       {
+        if (skip_multiline_root_value) {
+          if ($0 ~ /"""/) {
+            skip_multiline_root_value = 0
+          }
+          next
+        }
+
         if ($0 ~ /^[[:space:]]*\[[^]]+\]/) {
           current_table = parse_header($0)
           skip_block = (current_table in managed_tables)
@@ -209,6 +217,15 @@ strip_managed_config() {
             sub(/[[:space:]]+$/, "", root_key)
 
             if (root_key in managed_root_keys) {
+              value_part = trimmed_line
+              sub(/^[A-Za-z0-9_.-]+[[:space:]]*=[[:space:]]*/, "", value_part)
+
+              if (value_part ~ /^"""/) {
+                rest = substr(value_part, 4)
+                if (rest !~ /"""/) {
+                  skip_multiline_root_value = 1
+                }
+              }
               next
             }
           }
@@ -317,7 +334,6 @@ require_file "$AGENT_PROMPTS_TEMPLATE_DIR"
 require_file "$RULES_TEMPLATE_DIR"
 require_file "$SKILLS_TEMPLATE_DIR"
 require_file "$ORCHESTRATOR_TEMPLATE"
-require_file "$COMPACTION_RULE_TEMPLATE"
 require_file "$OPENSPEC_SKILL_DELEGATION_RULE_TEMPLATE"
 require_file "$CCG_SOURCE_DIR/codeagent-wrapper"
 
