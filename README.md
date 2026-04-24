@@ -42,7 +42,8 @@ approval_policy = "never"
 codex -p multi
 ```
 
-这个 profile 会启用 `templates/agents-prompts/ORCHESTRATOR.md` 中定义的编排逻辑，用总调度视角来组织任务。
+这个 profile 会启用 `templates/agents-prompts/MULTI_BASE.md` 里的共享基础约束。
+当任务需要总调度时，需要显式触发 `multi-orchestrator-playbook` skill，主代理才会读取 `templates/agents-prompts/ORCHESTRATOR.md` 这份编排手册来组织多 agent 执行。
 
 它的当前特征包括：
 
@@ -91,8 +92,9 @@ codex -p multi
 
 - `multi-model-research`：支持 Gemini / Claude 双后端的技术调研与方案评审，可单模型或双模型对比模式运行
 - `tech-research`：标准化技术调研工作流
+- `multi-orchestrator-playbook`：手动触发主代理加载编排手册，仅在需要总调度时使用
 
-它们解决的是"需要第二视角调研"以及"需要标准化技术调研工作流"的场景。
+它们解决的是"需要第二视角调研"、"需要标准化技术调研工作流"以及"需要显式进入编排手册模式"的场景。
 
 ### 5. `codeagent-wrapper` 多后端包装器
 
@@ -212,7 +214,13 @@ codex -p multi
 $openspec-explore 需要给当前项目添加gitlab oauth认证
 ```
 
-在使用openspec skill时自动触发。
+如果需要主代理进入编排手册模式，请显式触发：
+
+```text
+$multi-orchestrator-playbook
+```
+
+当前仓库只做到“手动触发”，没有做到把该 skill 强约束为仅 `multi` profile 可见。
 
 ### 4. 使用多模型调研包装器
 
@@ -260,6 +268,8 @@ sed -n '1,260p' ~/.codex/config.toml
 
 - `~/.codex/agents/`
 - `~/.codex/skills/`
+- `~/.codex/skills/multi-orchestrator-playbook/SKILL.md`
+- `~/.codex/agents-prompts/MULTI_BASE.md`
 - `~/.codex/agents-prompts/ORCHESTRATOR.md`
 - `~/.codex/ccg/codeagent-wrapper`
 - `~/.codex/config.toml` 中的 `[profiles.multi]`
@@ -303,8 +313,11 @@ OpenSpec 在 Codex 环境下只能通过 **skill** 触发。`openspec init --too
 | `openspec-explore` | 探索想法、调研问题、澄清需求 |
 | `openspec-apply-change` | 实施变更任务 |
 | `openspec-archive-change` | 归档已完成的变更 |
+| `multi-orchestrator-playbook` | 手动加载 `ORCHESTRATOR.md` 编排手册（建议在 `multi` profile 中使用） |
 
-Skill 文件位置：`~/.codex/skills/openspec-*/SKILL.md`
+OpenSpec 生成的 skill 文件位置：`~/.codex/skills/openspec-*/SKILL.md`
+
+仓库预置的编排手册 skill 文件位置：`~/.codex/skills/multi-orchestrator-playbook/SKILL.md`
 
 ### 常见工作流
 
@@ -345,11 +358,12 @@ RTK（Rust Token Killer）是一个 Token 优化的 CLI 代理，用于减少 sh
     ├── AGENTS.md
     ├── RTK.md
     ├── agents/             # Agent 角色模板
-    ├── agents-prompts/     # 编排提示词
+    ├── agents-prompts/     # 共享提示词与编排手册
     ├── config.base.toml    # 基础配置模板
     ├── rules/              # 行为规则
     ├── skills/             # 技能模板
     │   ├── multi-model-research/
+    │   ├── multi-orchestrator-playbook/
     │   └── tech-research/
     └── snippets/           # 代码片段
 ```

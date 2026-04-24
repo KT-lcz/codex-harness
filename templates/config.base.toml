@@ -27,7 +27,7 @@ sandbox_mode = "danger-full-access"
 approval_policy = "never"
 personality = "pragmatic"
 web_search = "live"
-model_instructions_file = "agents-prompts/ORCHESTRATOR.md"
+model_instructions_file = "agents-prompts/MULTI_BASE.md"
 
 [model_providers.cpa-responses]
 name = "cpa using responses"
